@@ -1,46 +1,83 @@
 #!/bin/bash
 
-# get_distro: Detects the Linux distribution of the system.
-get_distro() {
-  if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    echo "$ID"
-  elif [ -f /etc/lsb-release ]; then
-    . /etc/lsb-release
-    echo "$DISTRIB_ID"
-  elif [ -f /etc/redhat-release ]; then
-    echo "rhel"
-  elif [ -f /etc/arch-release ]; then
-    echo "arch"
-  elif [ -f /etc/alpine-release ]; then
-    echo "alpine"
-  else
-    echo "other"
-  fi
-}
+distro_determined=false
+
 
 # Ask from user for base of distro
 get_custom_distro() {
     # Prompt the user for a custom distribution name
-    read -p "Unable to identify the distribution. Please specify a custom distribution (options: arch, debian, ubuntu, rhel, alpine): " custom_distro
+    read -p "Unable to identify the distribution. Please specify base of your distribution (options: arch, debian, ubuntu, rhel, alpine):" custom_distro
     # Validate the input
     case "$custom_distro" in
     arch | debian | ubuntu | rhel | alpine)
       echo "$custom_distro" # Return the custom distro if valid
+      distro=$custom_distro
+      distro_determined=true
+      return
       ;;
     *)
-      echo "Invalid input. Please enter one of: arch, debian, ubuntu, rhel, alpine."
-      return 1
+      echo "unknown"
+      return
       ;;
     esac
 }
 
-# dnsmasq_restart: Restart the servies of dnsmasq
-dnsmasq_restart() {
-  distro=$(get_distro)
+# get_distro: Detects the Linux distribution of the system.
+get_distro() {
+  if [ "$distro_determined" = true ];then
+    echo $distro
+    return
+  fi
 
-  if [[ "$distro" == "other" ]];then
-    get_custom_distro
+  if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    echo "$ID"
+    return
+  elif [ -f /etc/lsb-release ]; then
+    . /etc/lsb-release
+    echo "$DISTRIB_ID"
+    return
+  elif [ -f /etc/redhat-release ]; then
+    echo "rhel"
+    return
+  elif [ -f /etc/arch-release ]; then
+    echo "arch"
+    return
+  elif [ -f /etc/alpine-release ]; then
+    echo "alpine"
+    return
+  else
+    echo "other"
+    return
+  fi
+}
+
+# Check script is running in sudo mod
+if [ "$EUID" -ne 0 ]; then
+    echo "This script must be run as root" 
+    exit 1
+fi
+
+# Get distribution name
+distro=$(get_distro)
+
+# If the distribution is another distribution give base distribution from user
+if [[ "$distro" == "other" ]]; then
+  distro=$(get_custom_distro)
+  
+  if [[ "$distro" == "unknown" ]]; then
+    echo "Sorry, its not valid base distribution name."
+    exit 1
+  fi
+fi
+
+
+
+# dnsmasq_restart: Restart the servies of dnsmasq
+dnsmasq_restart() { 
+  if [ ! -n "${distro}"]; then
+    echo "Error: Cannot find the distribution of your linux"
+    exit 1
   fi
 
   case "$distro" in
@@ -74,7 +111,6 @@ show_help() {
   echo "--dns			  Set an optional dns provider address. (default 178.22.122.100)"
   echo "--help			Show this message."
 }
-
 
 # EntryPoint
 
@@ -126,7 +162,7 @@ fi
 if [[ "$1" == "--install" ]]; then
   if [[ "$2" != "-y" ]]; then
     echo "Notice: This action will make important changes to your system, and there is a possibility it may impact your DNS services."
-    echo -n "Are you sure you want to proceed? [Y,n]:"
+    echo -n "Are you sure you want to proceed? [Y/n]:"
 
     read -r confirmation
 
@@ -135,11 +171,12 @@ if [[ "$1" == "--install" ]]; then
     fi
   fi
 
-  distro=$(get_distro)
-
-  if [[ "$distro" == "other" ]];then
-    distro=$(get_custom_distro)
-  fi
+  # if [[ "$distro" == "other" ]];then
+  #   distro=$(get_custom_distro)
+  #   if [[ "$distro" == "unknown" ]];then
+  #     echo "Sorry, its a unknown distribution."
+  #   fi
+  # fi
 
   # Debian Based
   if [[ "$distro" == "ubuntu" || "$distro" == "debian" ]]; then
