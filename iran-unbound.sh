@@ -15,6 +15,12 @@ get_distro() {
   elif [ -f /etc/alpine-release ]; then
     echo "alpine"
   else
+    echo "other"
+  fi
+}
+
+# Ask from user for base of distro
+get_custom_distro() {
     # Prompt the user for a custom distribution name
     read -p "Unable to identify the distribution. Please specify a custom distribution (options: arch, debian, ubuntu, rhel, alpine): " custom_distro
     # Validate the input
@@ -27,12 +33,16 @@ get_distro() {
       return 1
       ;;
     esac
-  fi
 }
 
 # dnsmasq_restart: Restart the servies of dnsmasq
 dnsmasq_restart() {
   distro=$(get_distro)
+
+  if [[ "$distro" == "other"]];then
+    get_custom_distro
+  fi
+
   case "$distro" in
   arch | debian | ubuntu | rhel)
     systemctl enable dnsmasq.service
@@ -123,6 +133,10 @@ if [[ "$1" == "--install" ]]; then
   fi
 
   distro=$(get_distro)
+
+  if [[ "$distro" == "other"]];then
+    distro=$(get_custom_distro)
+  fi
 
   # Debian Based
   if [[ "$distro" == "ubuntu" || "$distro" == "debian" ]]; then
