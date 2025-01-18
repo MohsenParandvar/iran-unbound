@@ -134,7 +134,7 @@ if [[ "$1" == "--install" ]]; then
 
   distro=$(get_distro)
 
-  if [[ "$distro" == "other"]];then
+  if [[ "$distro" == "other" ]];then
     distro=$(get_custom_distro)
   fi
 
