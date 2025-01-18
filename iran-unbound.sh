@@ -63,13 +63,7 @@ dnsmasq_restart() {
 }
 
 
-
-# EntryPoint
-
-
-
-# Usage message
-if [[ "$1" == "--help" ]]; then
+show_help() {
   echo "-----------------------"
   echo "|    IRAN UNBOUND     |"
   echo "|  IR-Boycott-Bypass  |"
@@ -79,6 +73,15 @@ if [[ "$1" == "--help" ]]; then
   echo "--update    Update the boycotted domains list"
   echo "--dns			  Set an optional dns provider address. (default 178.22.122.100)"
   echo "--help			Show this message."
+}
+
+
+# EntryPoint
+
+
+# Usage message
+if [[ "$1" == "--help" || "$1" == "" ]]; then
+  show_help
 fi
 
 # Check the config file is exists
@@ -185,3 +188,5 @@ if [[ "$1" == "--install" ]]; then
     fi
   fi
 fi
+
+
