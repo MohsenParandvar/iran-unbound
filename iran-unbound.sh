@@ -39,7 +39,7 @@ get_custom_distro() {
 dnsmasq_restart() {
   distro=$(get_distro)
 
-  if [[ "$distro" == "other"]];then
+  if [[ "$distro" == "other" ]];then
     get_custom_distro
   fi
 
