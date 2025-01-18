@@ -52,6 +52,12 @@ dnsmasq_restart() {
   esac
 }
 
+
+
+# EntryPoint
+
+
+
 # Usage message
 if [[ "$1" == "--help" ]]; then
   echo "-----------------------"
@@ -154,6 +160,9 @@ if [[ "$1" == "--install" ]]; then
   if [[ "$distro" == "arch" ]]; then
     pacman -Syu
     pacman -S dnsmasq
+
+    systemctl disable systemd-resolved.service
+    systemctl stop systemd-resolved.service
 
     is_restarted=$(dnsmasq_restart)
 
