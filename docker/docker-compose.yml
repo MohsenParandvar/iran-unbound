@@ -1,0 +1,6 @@
+services:
+  ubuntu:
+    build:
+      context: ../
+      dockerfile: ./docker/ubuntu/Dockerfile
+    command: ["./iran-unbound.sh", "--install", "-y"]
