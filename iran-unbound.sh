@@ -35,11 +35,14 @@ dnsmasq_restart() {
   distro=$(get_distro)
   case "$distro" in
   arch | debian | ubuntu | rhel)
+    systemctl enable dnsmasq.service
     systemctl restart dnsmasq.service
+
+    # Check the service restarted suceessfully
     if systemctl is-active --quiet "dnsmasq"; then
-      echo "DnsMasq is restarted Successfully."
+      echo "Dnsmasq is restarted Successfully."
     else
-      echo "Failed to restart DnsMasq. Please check the service problem with:"
+      echo "Failed to restart Dnsmasq. Please check the service problem with:"
       echo "journalctl -xu dnsmasq.service"
     fi
     ;;
@@ -88,12 +91,73 @@ fi
 
 # Pull the project (--udpate)
 if [[ "$1" == "--update" ]]; then
+
+  # Check git is installed
   if git --version &>/dev/null; then
     git remote add origin https://github.com/MohsenParandvar/iran-unbound.git &>/dev/null
     git pull origin main
     cp ir-domains.conf /etc/dnsmasq.d/ir-domains.conf
+    dnsmasq_restart
   else
     echo "Please install \"Git\" before run update command."
     exit 1
+  fi
+fi
+
+if [[ "$1" == "--install" ]]; then
+  echo "Notice: This action will make important changes to your system, and there is a possibility it may impact your DNS services."
+  echo -n "Are you sure you want to proceed? [Y,n]:"
+
+  read -r confirmation
+
+  if [[ "$confirmation" == "Y" || "$confirmation" == "y" ]]; then
+    distro=$(get_distro)
+
+    # Debian Based
+    if [[ "$distro" == "ubuntu" || "$distro" == "debian" ]]; then
+      apt update
+      apt install dnsmasq -y
+
+      systemctl disable systemd-resolved.service
+      systemctl stop systemd-resolved.service
+
+      cp ir-domains.conf /etc/dnsmasq.d/ir-domains.conf
+
+      is_restarted=$(dnsmasq_restart)
+
+      if [[ "$is_restarted" == "Dnsmasq is restarted Successfully." ]]; then
+        echo "Installation successfully."
+      fi
+    fi
+
+    # RHEL Based
+    if [[ "$distro" == "rhel" ]]; then
+      dnf update
+      dnf install dnsmasq -y
+
+      systemctl disable systemd-resolved.service
+      systemctl stop systemd-resolved.service
+
+      is_restarted=$(dnsmasq_restart)
+
+      if [[ "$is_restarted" == "Dnsmasq is restarted Successfully." ]]; then
+        echo "Installation successfully."
+      fi
+    fi
+
+    # Arch Based
+    if [[ "$distro" == "arch" ]]; then
+      pacman -Syu
+      pacman -S dnsmasq
+
+      is_restarted=$(dnsmasq_restart)
+
+      if [[ "$is_restarted" == "Dnsmasq is restarted Successfully." ]]; then
+        echo "Installation successfully."
+      fi
+    fi
+
+  else
+    echo "Action canceled."
   fi
 fi
