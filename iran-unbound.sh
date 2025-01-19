@@ -30,12 +30,28 @@ get_distro() {
 
     if [ -f /etc/os-release ]; then
         . /etc/os-release
-        echo "$ID"
-        return
-    elif [ -f /etc/lsb-release ]; then
-        . /etc/lsb-release
-        echo "$DISTRIB_ID"
-        return
+
+        case "$ID" in
+            rocky | Rocky | almalinux | Almalinux | centos | Centos )
+                echo rhel
+                return
+            ;;
+            ubuntu | Ubuntu | debian | Debian )
+                echo "debian"
+                return
+            ;;
+            alpine | Alpine )
+                echo "alpine"
+                return
+            ;;
+            arch | Arch | manjaro | Manjaro )
+                echo "arch"
+                return
+            ;;
+            *)
+            ;;
+        esac
+
     elif [ -f /etc/redhat-release ]; then
         echo "rhel"
         return
@@ -45,10 +61,9 @@ get_distro() {
     elif [ -f /etc/alpine-release ]; then
         echo "alpine"
         return
-    else
-        echo "other"
-        return
     fi
+    echo "other"
+    return
 }
 
 dnsmasq_config() {
