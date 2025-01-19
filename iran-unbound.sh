@@ -80,6 +80,11 @@ dnsmasq_config() {
     fi
 
     cp b-domains.conf /etc/dnsmasq.d/b-domains.conf
+
+    if [[ "$distro" == "alpine" ]];then
+        echo "nameserver 127.0.0.1" > /etc/resolv.conf
+        chattr +i /etc/resolv.conf
+    fi
 }
 
 # dnsmasq_restart: Restart the servies of dnsmasq
@@ -106,6 +111,18 @@ dnsmasq_restart() {
             echo "journalctl -xu dnsmasq.service"
         fi
         ;;
+    alpine )
+        rc-update add dnsmasq
+        rc-service dnsmasq restart
+
+        # Check the service restarted successfully
+        if rc-service dnsmasq status | grep -q "running"; then
+            echo "Dnsmasq is restarted Successfully."
+        else
+            echo "Failed to restart Dnsmasq. Please check the service problem with:"
+            echo "rc-service dnsmasq status"
+        fi
+    ;;
     *)
         echo "Restart Failed."
         ;;
@@ -244,4 +261,18 @@ if [[ "$1" == "--install" ]]; then
             echo "Installation successfully."
         fi
     fi
+
+    # Alpine Based
+    if [[ "$distro" == "alpine" ]]; then
+    apk update
+    apk add dnsmasq
+
+    dnsmasq_config
+
+    is_restarted=$(dnsmasq_restart)
+
+    if [[ "$is_restarted" == "Dnsmasq is restarted Successfully." ]]; then
+        echo "Installation successfully."
+    fi
+fi
 fi
