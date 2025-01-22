@@ -32,24 +32,23 @@ get_distro() {
         . /etc/os-release
 
         case "$ID" in
-            rocky | Rocky | almalinux | Almalinux | centos | Centos )
-                echo rhel
-                return
+        rocky | Rocky | almalinux | Almalinux | centos | Centos)
+            echo rhel
+            return
             ;;
-            ubuntu | Ubuntu | debian | Debian )
-                echo "debian"
-                return
+        ubuntu | Ubuntu | debian | Debian)
+            echo "debian"
+            return
             ;;
-            alpine | Alpine )
-                echo "alpine"
-                return
+        alpine | Alpine)
+            echo "alpine"
+            return
             ;;
-            arch | Arch | manjaro | Manjaro )
-                echo "arch"
-                return
+        arch | Arch | manjaro | Manjaro)
+            echo "arch"
+            return
             ;;
-            *)
-            ;;
+        *) ;;
         esac
 
     elif [ -f /etc/redhat-release ]; then
@@ -72,6 +71,7 @@ dnsmasq_config() {
         echo "# iran-unbound" >>/etc/dnsmasq.conf
         echo "listen-address=127.0.0.1" >>/etc/dnsmasq.conf
         echo "conf-dir=/etc/dnsmasq.d/,*.conf" >>/etc/dnsmasq.conf
+        echo "conf-dir=/etc/dnsmasq.d/,*.conf" >>/etc/dnsmasq.conf
     fi
 
     # Create dnsmasq.d directory if not exists
@@ -81,8 +81,8 @@ dnsmasq_config() {
 
     cp b-domains.conf /etc/dnsmasq.d/b-domains.conf
 
-    if [[ "$distro" == "alpine" ]];then
-        echo "nameserver 127.0.0.1" > /etc/resolv.conf
+    if [[ "$distro" == "alpine" ]]; then
+        echo "nameserver 127.0.0.1" >/etc/resolv.conf
         chattr +i /etc/resolv.conf
     fi
 }
@@ -111,7 +111,7 @@ dnsmasq_restart() {
             echo "journalctl -xu dnsmasq.service"
         fi
         ;;
-    alpine )
+    alpine)
         rc-update add dnsmasq
         rc-service dnsmasq restart
 
@@ -122,7 +122,7 @@ dnsmasq_restart() {
             echo "Failed to restart Dnsmasq. Please check the service problem with:"
             echo "rc-service dnsmasq status"
         fi
-    ;;
+        ;;
     *)
         echo "Restart Failed."
         ;;
@@ -191,6 +191,8 @@ if [[ "$1" == "--dns" ]]; then
     fi
 
     sed -i "s,178.22.122.100,$2,g" b-domains.conf
+    cp b-domains.conf /etc/dnsmasq.d/b-domains.conf
+    dnsmasq_restart
 fi
 
 # Pull the project (--udpate)
@@ -264,15 +266,15 @@ if [[ "$1" == "--install" ]]; then
 
     # Alpine Based
     if [[ "$distro" == "alpine" ]]; then
-    apk update
-    apk add dnsmasq
+        apk update
+        apk add dnsmasq
 
-    dnsmasq_config
+        dnsmasq_config
 
-    is_restarted=$(dnsmasq_restart)
+        is_restarted=$(dnsmasq_restart)
 
-    if [[ "$is_restarted" == "Dnsmasq is restarted Successfully." ]]; then
-        echo "Installation successfully."
+        if [[ "$is_restarted" == "Dnsmasq is restarted Successfully." ]]; then
+            echo "Installation successfully."
+        fi
     fi
-fi
 fi
