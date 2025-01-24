@@ -162,8 +162,6 @@ if [[ "$distro" == "other" ]]; then
     fi
 fi
 
-echo "Starting Installation for : $distro"
-
 # Usage message
 if [[ "$1" == "--help" || "$1" == "" ]]; then
     show_help
@@ -185,14 +183,18 @@ fi
 # Set the dns provider
 if [[ "$1" == "--dns" ]]; then
     if [[ "$2" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then # Check the ip is valid
-        echo "The DNS Provider is $2"
+        current_dns_resolver=$(awk -F'/' '{print $3}' "b-domains.conf" | uniq | tr -d '\n')
+
+        echo "Your current DNS Provier is : $current_dns_resolver"
+        echo "will change to : $2"
+
+        sed -i "s,$current_dns_resolver,$2,g" b-domains.conf
+        cp b-domains.conf /etc/dnsmasq.d/b-domains.conf
+        dnsmasq_restart
     else
         echo "Warning: the ip address is not valid!"
     fi
 
-    sed -i "s,178.22.122.100,$2,g" b-domains.conf
-    cp b-domains.conf /etc/dnsmasq.d/b-domains.conf
-    dnsmasq_restart
 fi
 
 # Pull the project (--udpate)
@@ -221,6 +223,8 @@ if [[ "$1" == "--install" ]]; then
             exit 0
         fi
     fi
+
+    echo "Starting Installation for : $distro"
 
     # Debian Based
     if [[ "$distro" == "ubuntu" || "$distro" == "debian" ]]; then
