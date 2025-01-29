@@ -23,9 +23,11 @@ The script is designed to:
 
 - **Easy Installation**: No technical expertise required—just run the script, and it handles everything.
 - **Selective Bypass**: Only bypasses boycotted domains, ensuring all other domains resolve through your default DNS.
+- **Fast and Secure**: Because of the Selective Bypass feature, your internet connection will be faster and safer.
 - **Cross-Distribution Support**: Works on RHEL, Debian, Arch, and Alpine-based Linux distributions.
 - **Automatic Updates**: The list of boycotted domains is updated periodically, ensuring you always have the latest configurations.
 - **Lightweight**: Minimal resource usage, making it perfect for all systems.
+- **Permanent and Hassle-Free**: Once set up, no need for further configuration—your system will automatically work with the service every time it powers on.
 
 ---
 
@@ -61,6 +63,25 @@ sudo ./iran-unbound.sh --update
 To change the DNS resolver used for bypassing boycotted domains, run:
 ```bash
 sudo ./iran-unbound.sh --dns {dns_resolver_ip}
+```
+
+## Disable/Enable Service
+for disable the service and restore to system default you can use this:
+
+```bash
+sudo ./iran-unbound.sh --disable
+```
+
+and for enable again, use:
+
+```bash
+sudo ./iran-unbound.sh --enable
+```
+
+## Uninstall
+Restore to system defaults:
+```bash
+sudo ./iran-unbound.sh --uninstall
 ```
 
 ## Supported Distributions

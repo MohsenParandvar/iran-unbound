@@ -130,15 +130,18 @@ dnsmasq_restart() {
 }
 
 show_help() {
-    echo "-----------------------"
-    echo "|    IRAN UNBOUND     |"
-    echo "|  IR-Boycott-Bypass  |"
-    echo "-----------------------"
+    echo "-------------------------"
+    echo "|      IRAN UNBOUND      |"
+    echo "|   IR-Boycott-Bypass    |"
+    echo "-------------------------"
     echo "Options:"
-    echo "--install   Install and config dnsmasq. use -y for install non-interactively"
-    echo "--update    Update the boycotted domains list"
-    echo "--dns			  Set an optional dns provider address. (default 178.22.122.100)"
-    echo "--help			Show this message."
+    echo "  --install       Install and configure dnsmasq. Use '-y' for non-interactive installation."
+    echo "  --update        Update the list of boycotted domains."
+    echo "  --dns <address> Set an optional DNS provider address. (Default: 178.22.122.100)"
+    echo "  --enable        Enable Iran-Unbound on the system."
+    echo "  --disable       Disable Iran-Unbound and revert to system defaults. Re-enable with --enable."
+    echo "  --uninstall     Uninstall Iran-Unbound and restore system defaults."
+    echo "  --help          Display this help message."
 }
 
 # EntryPoint
