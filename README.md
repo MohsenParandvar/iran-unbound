@@ -24,7 +24,7 @@ The script is designed to:
 - **Easy Installation**: No technical expertise required—just run the script, and it handles everything.
 - **Selective Bypass**: Only bypasses boycotted domains, ensuring all other domains resolve through your default DNS.
 - **Fast and Secure**: Because of the Selective Bypass feature, your internet connection will be faster and safer.
-- **Cross-Distribution Support**: Works on RHEL, Debian, Arch, and Alpine-based Linux distributions.
+- **Cross-Distribution Support**: Works on RHEL, Debian, and Arch based Linux distributions.
 - **Automatic Updates**: The list of boycotted domains is updated periodically, ensuring you always have the latest configurations.
 - **Lightweight**: Minimal resource usage, making it perfect for all systems.
 - **Permanent and Hassle-Free**: Once set up, no need for further configuration—your system will automatically work with the service every time it powers on.
@@ -88,7 +88,6 @@ sudo ./iran-unbound.sh --uninstall
 - RHEL-based (e.g., CentOS, Fedora)
 - Debian-based (e.g., Ubuntu, Debian)
 - Arch-based (e.g., Arch Linux, Manjaro)
-- Alpine-based
 
 ## Contact
 If you have any questions, feedback, or issues, feel free to reach out:

@@ -113,27 +113,33 @@ dnsmasq_disable() {
         exit 1
     fi
 
-    case "$distro" in
-    arch | debian | ubuntu | rhel)
+    systemctl disable dnsmasq.service
+    systemctl stop dnsmasq.service
 
-        systemctl disable dnsmasq.service
-        systemctl stop dnsmasq.service
+    # Check the service disabled suceessfully
+    if ! systemctl is-active --quiet "dnsmasq"; then
+        echo "success"
+    else
+        echo "failed"
+    fi
+}
 
-        systemctl enable systemd-resolved.service
-        systemctl restart systemd-resolved.service
+# resolved_enable: enable the servies of resolved
+resolved_enable() {
+    if [ ! -n "${distro}" ]; then
+        echo "Error: Cannot find the distribution of your linux for disable the systemd-resolved service"
+        exit 1
+    fi
 
-        # Check the service disabled suceessfully
-        if systemctl is-active --quiet "systemd-resolved"; then
-            echo "systemd-resolved is enabled Successfully."
-        else
-            echo "Failed to enable systemd-resolved. Please check the service problem with:"
-            echo "journalctl -xu systemd-resolved.service"
-        fi
-        ;;
-    *)
-        echo "Restart Failed."
-        ;;
-    esac
+    systemctl enable systemd-resolved.service
+    systemctl restart systemd-resolved.service
+
+    # Check the service disabled suceessfully
+    if systemctl is-active --quiet "systemd-resolved"; then
+        echo "success"
+    else
+        echo "failed"
+    fi
 }
 
 show_help() {
@@ -222,6 +228,7 @@ if [[ "$1" == "--update" ]]; then
     fi
 fi
 
+# Installation
 if [[ "$1" == "--install" ]]; then
     if [[ "$2" != "-y" ]]; then
         echo "Notice: This action will make important changes to your system, and there is a possibility it may impact your DNS services."
@@ -279,6 +286,46 @@ if [[ "$1" == "--install" ]]; then
     fi
 fi
 
+# Disable
+if [[ "$1" == "--disable" ]]; then
+    echo -n "Are you sure you want to disable? [Y/n]:"
+
+    read -r confirmation
+
+    if [[ "$confirmation" == "y" || "$confirmation" == "Y" ]]; then
+        echo "Disabling Dnsmasq service..."
+
+        dnsmasq_disabled=$(dnsmasq_disable)
+        if [[ "$dnsmasq_disabled" == "success" ]]; then
+            echo "Restarting systemd-resolved service..."
+            resolved_enabled=$(resolved_enable)
+
+            if [[ "$resolved_enabled" == "success" ]]; then
+                echo "Done..."
+            else
+                echo "[Warning]: an error happend while enabling systemd-resolved services"
+                echo -n "Do you want to revert actions? [Y/n]:"
+
+                read -r confirmation
+
+                if [[ "$confirmation" == "y" || "$confirmation" == "Y" ]]; then
+                    dnsmasq_restart
+                else
+                    echo "Okay, you might not have internet access because your DNS server is inactive."
+                fi
+            fi
+        fi
+    fi
+fi
+
+# Enable
+if [[ "$1" == "--enable" ]]; then
+    echo "Enabling Dnsmasq service..."
+
+    dnsmasq_restart
+fi
+
+# Uninstall
 if [[ "$1" == "--uninstall" ]]; then
     echo -n "Are you sure you want to uninstall? [Y/n]:"
 
@@ -287,7 +334,38 @@ if [[ "$1" == "--uninstall" ]]; then
     if [[ "$confirmation" == "y" || "$confirmation" == "Y" ]]; then
         echo "Disabling Dnsmasq service..."
 
-        dnsmasq_disable
-    fi
+        dnsmasq_disabled=$(dnsmasq_disable)
+        if [[ "$dnsmasq_disabled" == "success" ]]; then
+            echo "Restarting systemd-resolved service..."
+            resolved_enabled=$(resolved_enable)
 
+            if [[ "$resolved_enabled" == "success" ]]; then
+                if [[ "$distro" == "ubuntu" || "$distro" == "debian" ]]; then
+                    apt remove dnsmasq
+                fi
+
+                if [[ "$distro" == "rhel" ]]; then
+                    dnf remove dnsmasq
+                fi
+
+                if [[ "$distro" == "arch" ]]; then
+                    pacman -R firefox
+                fi
+
+                echo "Done..."
+                echo "For install it again , you can use --install flag."
+            else
+                echo "[Warning]: an error happend while enabling systemd-resolved services"
+                echo -n "Do you want to revert actions? [Y/n]:"
+
+                read -r confirmation
+
+                if [[ "$confirmation" == "y" || "$confirmation" == "Y" ]]; then
+                    dnsmasq_restart
+                else
+                    echo "Okay, you might not have internet access because your DNS server is inactive."
+                fi
+            fi
+        fi
+    fi
 fi
