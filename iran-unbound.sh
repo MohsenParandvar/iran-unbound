@@ -5,10 +5,10 @@ distro_determined=false
 # get_custom_distro: Ask from user for base of distro
 get_custom_distro() {
     # Prompt the user for a custom distribution name
-    read -p "Unable to identify the distribution. Please specify base of your distribution (options: arch, debian, ubuntu, rhel, alpine):" custom_distro
+    read -p "Unable to identify the distribution. Please specify base of your distribution (options: arch, debian, ubuntu, rhel):" custom_distro
     # Validate the input
     case "$custom_distro" in
-    arch | debian | ubuntu | rhel | alpine)
+    arch | debian | ubuntu | rhel)
         echo "$custom_distro" # Return the custom distro if valid
         distro=$custom_distro
         distro_determined=true
@@ -40,10 +40,6 @@ get_distro() {
             echo "debian"
             return
             ;;
-        alpine | Alpine)
-            echo "alpine"
-            return
-            ;;
         arch | Arch | manjaro | Manjaro)
             echo "arch"
             return
@@ -56,9 +52,6 @@ get_distro() {
         return
     elif [ -f /etc/arch-release ]; then
         echo "arch"
-        return
-    elif [ -f /etc/alpine-release ]; then
-        echo "alpine"
         return
     fi
     echo "other"
@@ -81,10 +74,6 @@ dnsmasq_config() {
 
     cp b-domains.conf /etc/dnsmasq.d/b-domains.conf
 
-    if [[ "$distro" == "alpine" ]]; then
-        echo "nameserver 127.0.0.1" >/etc/resolv.conf
-        chattr +i /etc/resolv.conf
-    fi
 }
 
 # dnsmasq_restart: Restart the servies of dnsmasq
@@ -111,16 +100,34 @@ dnsmasq_restart() {
             echo "journalctl -xu dnsmasq.service"
         fi
         ;;
-    alpine)
-        rc-update add dnsmasq
-        rc-service dnsmasq restart
+    *)
+        echo "Restart Failed."
+        ;;
+    esac
+}
 
-        # Check the service restarted successfully
-        if rc-service dnsmasq status | grep -q "running"; then
-            echo "Dnsmasq is restarted Successfully."
+# dnsmasq_disable: disable the servies of dnsmasq
+dnsmasq_disable() {
+    if [ ! -n "${distro}" ]; then
+        echo "Error: Cannot find the distribution of your linux for disable the dnsmasq service"
+        exit 1
+    fi
+
+    case "$distro" in
+    arch | debian | ubuntu | rhel)
+
+        systemctl disable dnsmasq.service
+        systemctl stop dnsmasq.service
+
+        systemctl enable systemd-resolved.service
+        systemctl restart systemd-resolved.service
+
+        # Check the service disabled suceessfully
+        if systemctl is-active --quiet "systemd-resolved"; then
+            echo "systemd-resolved is enabled Successfully."
         else
-            echo "Failed to restart Dnsmasq. Please check the service problem with:"
-            echo "rc-service dnsmasq status"
+            echo "Failed to enable systemd-resolved. Please check the service problem with:"
+            echo "journalctl -xu systemd-resolved.service"
         fi
         ;;
     *)
@@ -270,18 +277,17 @@ if [[ "$1" == "--install" ]]; then
             echo "Installation successfully."
         fi
     fi
+fi
 
-    # Alpine Based
-    if [[ "$distro" == "alpine" ]]; then
-        apk update
-        apk add dnsmasq
+if [[ "$1" == "--uninstall" ]]; then
+    echo -n "Are you sure you want to uninstall? [Y/n]:"
 
-        dnsmasq_config
+    read -r confirmation
 
-        is_restarted=$(dnsmasq_restart)
+    if [[ "$confirmation" == "y" || "$confirmation" == "Y" ]]; then
+        echo "Disabling Dnsmasq service..."
 
-        if [[ "$is_restarted" == "Dnsmasq is restarted Successfully." ]]; then
-            echo "Installation successfully."
-        fi
+        dnsmasq_disable
     fi
+
 fi
