@@ -96,6 +96,8 @@ GitHub Issues: Open an Issue
 
 Email: Mohsen.Parandvar@yahoo.com
 
+> We hope that such sanctions never come to pass, and that we can continue to use the internet freely without the need for such tools.
+
 ## Buy me a coffee
 If you'd like, you can buy me a coffee! ;)
 
