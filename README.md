@@ -1,4 +1,6 @@
-# Iran-Unbound ![logo](https://raw.githubusercontent.com/MohsenParandvar/iran-unbound/refs/heads/main/logo.png)
+![logo](https://raw.githubusercontent.com/MohsenParandvar/iran-unbound/refs/heads/main/logo.png)
+
+# Iran Unbound 
 
 > A simple Bash script to install and configure `dnsmasq` on Linux systems, enabling users to bypass Iran's boycotted domains while using the default DNS resolver for all other domains.
 
